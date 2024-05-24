@@ -4,8 +4,14 @@ import { Circle } from "react-preloaders";
 import config from "../config";
 import style from "../app.module.scss";
 import showErrorMessage from "../utils/showErrorMessage";
+import tokenJWT from "../services/tokenJWT";
 
 export const AuthContext = createContext({});
+
+export const AuthClient = axios.create({
+  baseURL: `${config.API_URL}/auth`,
+  withCredentials: true,
+});
 
 const AuthProvider = ({ children }) => {
   const [data, setData] = useState();
@@ -14,9 +20,25 @@ const AuthProvider = ({ children }) => {
 
   const handleLogOut = () => {};
 
-  const handleSignUp = (data) => {};
+  const handleSignUp = (data) => {
+    AuthClient.post("/sign-up", data)
+      .then((res) => {
+        const { accessToken, accessTokenExpiration } = res.data;
 
-  const handleSignIn = (data) => {};
+        tokenJWT.setToken(accessToken, accessTokenExpiration);
+      })
+      .catch(showErrorMessage);
+  };
+
+  const handleSignIn = (data) => {
+    AuthClient.post("/sign-in", data)
+      .then((res) => {
+        const { accessToken, accessTokenExpiration } = res.data;
+
+        tokenJWT.setToken(accessToken, accessTokenExpiration);
+      })
+      .catch(showErrorMessage);
+  };
 
   return (
     <AuthContext.Provider
