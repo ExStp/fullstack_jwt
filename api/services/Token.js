@@ -17,7 +17,25 @@ class TokenService {
     });
   }
 
-  static async checkAccess(req, _, next) {}
+  static async checkAccess(req, _, next) {
+    const authHeader = req.headers.authorization;
+
+    const token = authHeader?.split(" ")?.[1];
+
+    if (!token) {
+      return next(new Unauthorized());
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, user) => {
+
+      if (error) {
+        return next(new Forbidden());
+      }
+
+      req.user = user;
+      next();
+    });
+  }
 }
 
 export default TokenService;
